@@ -1,0 +1,1 @@
+{"emulators":{"dataconnect":{"dataDir":"dataconnect/.dataconnect/pgliteData"}},"dataconnect":{"source":"dataconnect"},"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"dashboard-8e414","configurations":{"web":"1:848704699189:web:a9df822e06d229fb186a7c","windows":"1:848704699189:web:433256d0b45f966b186a7c"}}}}}}
