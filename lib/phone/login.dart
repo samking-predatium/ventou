@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ventou/authentification/google_auth.dart';
-import 'package:ventou/page/bar_de_navigation/navigation.dart';
+import 'package:ventou/phone/phone_first_screen.dart';
+import 'package:ventou/variables/colors.dart';
 
 class PhoneLoginScreen extends StatelessWidget {
   const PhoneLoginScreen({super.key});
@@ -15,7 +16,7 @@ class PhoneLoginScreen extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => VentouMainScreen(),
+            builder: (context) => PhoneFirstScreen(),
           ),
         );
       }
@@ -37,6 +38,7 @@ class PhoneLoginScreen extends StatelessWidget {
     final isSmallScreen = size.width < 600;
 
     return Scaffold(
+      backgroundColor: AppColors.blanc,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -92,7 +94,7 @@ class PhoneLoginScreen extends StatelessWidget {
                 SizedBox(height: size.height * 0.02),
 
                 Text(
-                  'Lorem ipsum Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonumkfkvjfrk kjkrjkbjkjbkbkjb cing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad',
+                  'Bienvenue sur note application, vovez une experience de vente en ligne hors du commun',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: const Color.fromARGB(255, 0, 0, 0),
