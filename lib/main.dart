@@ -1,19 +1,17 @@
-
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:ventou/desktop/desktop_first_screen.dart';
+import 'package:ventou/desktop/desktop_login_screen.dart';
 import 'package:ventou/firebase_options.dart';
-import 'package:ventou/phone/login.dart';
+import 'package:ventou/phone/phone_login_screen.dart';
 import 'package:ventou/redirection.dart';
-import 'package:ventou/tablet/tablet_first_screen.dart';
+import 'package:ventou/tablet/tablet_login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
-);
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(const MyApp());
 }
@@ -25,9 +23,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: Redirection(
-        onPhone: PhoneLoginScreen(), 
-        onTablet: TabletFirstScreen(), 
-        onDesktop: DesktopFirstScreen(),
+        onPhone: PhoneLoginScreen(),
+        onTablet: TabletLoginScreen(),
+        onDesktop: DesktopLoginScreen(),
       ),
     );
   }
