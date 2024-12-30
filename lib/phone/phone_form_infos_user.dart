@@ -17,6 +17,7 @@ class _PhoneFormInfosUserState extends State<PhoneFormInfosUser> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    // ignore: unused_local_variable
     final isSmallScreen = size.width < 600;
 
     return Scaffold(

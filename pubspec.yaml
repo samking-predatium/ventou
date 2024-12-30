@@ -43,6 +43,7 @@ dependencies:
   google_sign_in: ^6.2.2
   flutter_dotenv: ^5.2.1
   flutter_animate: ^4.5.2
+  firebase_data_connect: ^0.1.2+5
 
 dev_dependencies:
   flutter_test:

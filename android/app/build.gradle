@@ -22,12 +22,12 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.levt.ventou"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+         minSdkVersion 23
+        multiDexEnabled true
+        targetSdkVersion 34
+        // Utilisation des valeurs flutterVersionCode et flutterVersionName
+        versionCode 1
+        versionName "1.0.0"
     }
 
     buildTypes {
