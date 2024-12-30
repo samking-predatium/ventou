@@ -8,6 +8,7 @@ class PhoneFormInfosUser extends StatefulWidget {
 }
 
 class _PhoneFormInfosUserState extends State<PhoneFormInfosUser> {
+  // ignore: unused_field
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nomUser = TextEditingController();
   final TextEditingController prenomsUser = TextEditingController();
@@ -20,7 +21,7 @@ class _PhoneFormInfosUserState extends State<PhoneFormInfosUser> {
     // ignore: unused_local_variable
     final isSmallScreen = size.width < 600;
 
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: Center(
           child: Padding(

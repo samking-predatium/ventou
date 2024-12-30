@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "848704699189",
+    "firebase_url": "https://dashboard-8e414-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "dashboard-8e414",
+    "storage_bucket": "dashboard-8e414.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:848704699189:android:af14abcaa84b87f5186a7c",
+        "android_client_info": {
+          "package_name": "com.ventou.leventou"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "848704699189-811mt1fjnol0q6embd1br4ba9puac9rv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOlNCFDKDlaUt8qghdz0kIBf6d2YK5BWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "848704699189-811mt1fjnol0q6embd1br4ba9puac9rv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "848704699189-272fdotenkr84tb14vgqn6dkk0jdkhm5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.vt.ventou"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

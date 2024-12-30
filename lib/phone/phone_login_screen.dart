@@ -8,6 +8,7 @@ import 'package:ventou/variables/colors.dart';
 class PhoneLoginScreen extends StatelessWidget {
   const PhoneLoginScreen({super.key});
 
+  // ignore: unused_element
   Future<void> _handleGoogleSignIn(BuildContext context) async {
     final authService = AuthService();
 
@@ -18,7 +19,7 @@ class PhoneLoginScreen extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => PhoneFirstScreen(),
+            builder: (context) => const PhoneFirstScreen(),
           ),
         );
       }
@@ -126,7 +127,7 @@ class PhoneLoginScreen extends StatelessWidget {
                   // Subtitle Text
                   CustomAnimations.animateListTile(
                     // Google Sign-In Button
-                    Container(
+                    SizedBox(
                       width: 300,
                       child: ElevatedButton(
                         // onPressed: () => _handleGoogleSignIn(context),
@@ -137,14 +138,15 @@ class PhoneLoginScreen extends StatelessWidget {
                           minimumSize: Size(10, size.height * 0.08),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25),
-                            side: BorderSide(color: AppColors.orange, width: 2),
+                            side: const BorderSide(
+                                color: AppColors.orange, width: 2),
                           ),
                         ),
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
                             FadePageRoute(
-                              page: PhoneFormInfosUser(),
+                              page: const PhoneFormInfosUser(),
                             ),
                           );
                         },

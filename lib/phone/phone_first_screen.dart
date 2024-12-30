@@ -10,6 +10,6 @@ class PhoneFirstScreen extends StatefulWidget {
 class _PhoneFirstScreenState extends State<PhoneFirstScreen> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp();
+    return const MaterialApp();
   }
 }

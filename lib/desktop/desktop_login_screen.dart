@@ -17,7 +17,7 @@ class DesktopLoginScreen extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => DesktopFirstScreen(),
+            builder: (context) => const DesktopFirstScreen(),
           ),
         );
       }
@@ -45,7 +45,7 @@ class DesktopLoginScreen extends StatelessWidget {
       backgroundColor: AppColors.blanc,
       body: SafeArea(
           child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Row(
           children: [
             Expanded(
@@ -86,7 +86,7 @@ class DesktopLoginScreen extends StatelessWidget {
               flex: 1,
               child: Center(
                 child: Padding(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -113,17 +113,16 @@ class DesktopLoginScreen extends StatelessWidget {
                         // Google Sign-In Button
                         Padding(
                           padding: const EdgeInsets.all(10.0),
-                          child: Container(
+                          child: SizedBox(
                             width: 400,
                             child: ElevatedButton(
                               onPressed: () => _handleGoogleSignIn(context),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.blanc,
-                                minimumSize:
-                                    Size(5, size.height * 0.08),
+                                minimumSize: Size(5, size.height * 0.08),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25),
-                                  side: BorderSide(
+                                  side: const BorderSide(
                                       color: AppColors.orange, width: 2),
                                 ),
                               ),

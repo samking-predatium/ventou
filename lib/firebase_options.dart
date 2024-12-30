@@ -21,20 +21,11 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -51,23 +42,56 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyC-v6sVEoJyVKicVeKWGKd-3XUsDEqIXLs',
-    appId: '1:848704699189:web:a9df822e06d229fb186a7c',
+    appId: '1:848704699189:web:b8b6a02936ccdb45186a7c',
     messagingSenderId: '848704699189',
     projectId: 'dashboard-8e414',
     authDomain: 'dashboard-8e414.firebaseapp.com',
     databaseURL: 'https://dashboard-8e414-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'dashboard-8e414.appspot.com',
-    measurementId: 'G-8CHH317T5N',
+    measurementId: 'G-R3PJHDL1YF',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyBOlNCFDKDlaUt8qghdz0kIBf6d2YK5BWw',
+    appId: '1:848704699189:android:af14abcaa84b87f5186a7c',
+    messagingSenderId: '848704699189',
+    projectId: 'dashboard-8e414',
+    databaseURL: 'https://dashboard-8e414-default-rtdb.europe-west1.firebasedatabase.app',
+    storageBucket: 'dashboard-8e414.appspot.com',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyB-YYuXq51iCRzgY4djGeE6uM3bFPZit7E',
+    appId: '1:848704699189:ios:d08eac3aae4905a8186a7c',
+    messagingSenderId: '848704699189',
+    projectId: 'dashboard-8e414',
+    databaseURL: 'https://dashboard-8e414-default-rtdb.europe-west1.firebasedatabase.app',
+    storageBucket: 'dashboard-8e414.appspot.com',
+    androidClientId: '848704699189-976ik2cvtkm0a4jrupsc7m9huc1o2uhe.apps.googleusercontent.com',
+    iosClientId: '848704699189-ermqmfb0hdlvlcc905388v1j4pvstpt8.apps.googleusercontent.com',
+    iosBundleId: 'com.ventou.leventou',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyB-YYuXq51iCRzgY4djGeE6uM3bFPZit7E',
+    appId: '1:848704699189:ios:94c935d78477f4b0186a7c',
+    messagingSenderId: '848704699189',
+    projectId: 'dashboard-8e414',
+    databaseURL: 'https://dashboard-8e414-default-rtdb.europe-west1.firebasedatabase.app',
+    storageBucket: 'dashboard-8e414.appspot.com',
+    androidClientId: '848704699189-976ik2cvtkm0a4jrupsc7m9huc1o2uhe.apps.googleusercontent.com',
+    iosClientId: '848704699189-574qjls882utl121dl4rdeljl8uu4h3b.apps.googleusercontent.com',
+    iosBundleId: 'com.example.leventou',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyC-v6sVEoJyVKicVeKWGKd-3XUsDEqIXLs',
-    appId: '1:848704699189:web:433256d0b45f966b186a7c',
+    appId: '1:848704699189:web:2dfb9f1d7d55c019186a7c',
     messagingSenderId: '848704699189',
     projectId: 'dashboard-8e414',
     authDomain: 'dashboard-8e414.firebaseapp.com',
     databaseURL: 'https://dashboard-8e414-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'dashboard-8e414.appspot.com',
-    measurementId: 'G-KBGZC8ESM5',
+    measurementId: 'G-PYC1FZ8PGX',
   );
 }
