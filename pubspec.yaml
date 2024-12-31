@@ -44,6 +44,9 @@ dependencies:
   flutter_dotenv: ^5.2.1
   flutter_animate: ^4.5.2
   firebase_data_connect: ^0.1.2+5
+  image_picker: ^1.1.2
+  intl: ^0.19.0
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
@@ -93,6 +96,11 @@ flutter:
       fonts:
         - asset: fonts/didactgothic-regular.otf
   #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+    - family: Dosis
+      fonts:
+        - asset: fonts/Dosis-Medium.otf
+        - asset: fonts/Dosis-Regular.otf
   #         weight: 700
   #
   # For details regarding fonts from package dependencies,

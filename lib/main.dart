@@ -1,10 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:ventou/desktop/desktop_login_screen.dart';
+import 'package:ventou/desktop/connexion/desktop_login_screen.dart';
 import 'package:ventou/firebase_options.dart';
-import 'package:ventou/phone/phone_login_screen.dart';
+import 'package:ventou/phone/connexion/phone_login_screen.dart';
 import 'package:ventou/redirection.dart';
-import 'package:ventou/tablet/tablet_login_screen.dart';
+import 'package:ventou/tablet/connexion/tablet_login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

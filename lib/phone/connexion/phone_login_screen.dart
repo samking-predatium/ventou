@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ventou/authentification/google_auth.dart';
+import 'package:ventou/phone/connexion/firest_phone_form_infos_user.dart';
 import 'package:ventou/phone/phone_first_screen.dart';
-import 'package:ventou/phone/phone_form_infos_user.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
@@ -42,7 +42,7 @@ class PhoneLoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600;
+    final isSmallScreen = size.width < 768;
 
     return Scaffold(
       backgroundColor: AppColors.blanc,
@@ -137,7 +137,7 @@ class PhoneLoginScreen extends StatelessWidget {
                           // padding: EdgeInsets.symmetric( vertical: size.height * 0.03, horizontal: 20),
                           minimumSize: Size(10, size.height * 0.08),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(30),
                             side: const BorderSide(
                                 color: AppColors.orange, width: 2),
                           ),
@@ -146,7 +146,7 @@ class PhoneLoginScreen extends StatelessWidget {
                           Navigator.pushReplacement(
                             context,
                             FadePageRoute(
-                              page: const PhoneFormInfosUser(),
+                              page: const FirestPhoneFormInfosUser(),
                             ),
                           );
                         },
