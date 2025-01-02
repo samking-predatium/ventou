@@ -12,7 +12,7 @@ class _PhoneFirstScreenState extends State<PhoneFirstScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: Text("Salut"),
+      body: const Text("Salut"),
     );
   }
 }

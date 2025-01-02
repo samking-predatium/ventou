@@ -65,11 +65,11 @@ class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: EdgeInsets.only(left: 5, right: 5, top: 30),
+            padding: const EdgeInsets.only(left: 5, right: 5, top: 30),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 50,
                 ),
                 CustomAnimations.animateListTile(
@@ -81,11 +81,11 @@ class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
                   ),
                   0,
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 70,
                 ),
                 Padding(
-                  padding: EdgeInsets.all(0),
+                  padding: const EdgeInsets.all(0),
                   child: Text(
                     "Renseignez vos informations",
                     style: TextStyle(
@@ -95,12 +95,12 @@ class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
                         fontFamily: AppsFont.font3),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 Container(
-                  padding:
-                      EdgeInsets.only(top: 5, bottom: 5, right: 1, left: 1),
+                  padding: const EdgeInsets.only(
+                      top: 5, bottom: 5, right: 1, left: 1),
                   width: isSmallScreen ? size.width * 0.9 : size.width * 1,
                   height: isSmallScreen ? size.height * 0.5 : size.height * 0.8,
                   decoration: BoxDecoration(
@@ -118,7 +118,7 @@ class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
                       // Dans la partie children du Column central, ajoute ceci :
 
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           children: [
                             const SizedBox(height: 20),
