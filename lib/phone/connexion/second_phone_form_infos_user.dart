@@ -44,7 +44,7 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PhoneFirstScreen(),
+        builder: (context) => const PhoneFirstScreen(),
       ),
     );
   }
@@ -87,11 +87,11 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
                 height: 40,
                 fit: BoxFit.contain,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 30,
               ),
-              Center(
-                child: const Text(
+              const Center(
+                child: Text(
                   'Sélectionner une image',
                   style: TextStyle(color: AppColors.orange, fontSize: 20),
                 ),
@@ -165,7 +165,7 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: AppColors.orange,
               onPrimary: Colors.white,
               onSurface: AppColors.blue,
@@ -194,13 +194,13 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
         child: SingleChildScrollView(
           child: Center(
             child: Padding(
-              padding: EdgeInsets.only(left: 5, right: 5, top: 30),
+              padding: const EdgeInsets.only(left: 5, right: 5, top: 30),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 70,
                     ),
                     Padding(
@@ -223,6 +223,7 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
+                            // ignore: deprecated_member_use
                             color: Colors.grey.withOpacity(0.2),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
@@ -248,7 +249,7 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
                                     : null,
                               ),
                               child: _imageFile == null
-                                  ? Icon(
+                                  ? const Icon(
                                       Icons.camera_alt,
                                       size: 40,
                                       color: AppColors.orange,
@@ -257,7 +258,7 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          Text(
+                          const Text(
                             "Photo de profil",
                             style: TextStyle(
                               color: AppColors.blue,
