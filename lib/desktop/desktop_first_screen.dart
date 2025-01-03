@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class DesktopFirstScreen extends StatefulWidget {
   const DesktopFirstScreen({super.key});
@@ -10,6 +10,10 @@ class DesktopFirstScreen extends StatefulWidget {
 class _DesktopFirstScreenState extends State<DesktopFirstScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+ return Scaffold(
+      body: Center(
+        child: Text("RESPONSIVE SUR ORDINATEUR"),
+      ),
+    );
   }
 }

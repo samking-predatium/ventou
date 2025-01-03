@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class TabletFirstScreen extends StatefulWidget {
   const TabletFirstScreen({super.key});
@@ -10,6 +10,10 @@ class TabletFirstScreen extends StatefulWidget {
 class _TabletFirstScreenState extends State<TabletFirstScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: Center(
+        child: Text("RESPONSIVE SUR TABLETTE"),
+      ),
+    );
   }
 }

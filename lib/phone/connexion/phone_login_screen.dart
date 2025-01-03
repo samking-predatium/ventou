@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ventou/authentification/google_auth.dart';
 import 'package:ventou/phone/connexion/firest_phone_form_infos_user.dart';
 import 'package:ventou/phone/phone_first_screen.dart';
@@ -174,6 +175,22 @@ class PhoneLoginScreen extends StatelessWidget {
                   ),
 
                   SizedBox(height: size.height * 0.03),
+                  TextButton(
+                      onPressed: () {
+                        // Navigator.pushReplacement(
+                        //   context,
+                        //   FadePageRoute(
+                        //     page: PhoneDefinirPin(
+                        //       onPinConfirmed: (pin) {
+                        //         print('PIN configuré: $pin');
+                        //       },
+                        //     ),
+                        //   ),
+                        // );
+                        final navigator = GoRouter.of(context);
+                        navigator.push('/entree-pin');
+                      },
+                      child: Text("OPT SCREEN VIEW"))
                 ],
               ),
             ),

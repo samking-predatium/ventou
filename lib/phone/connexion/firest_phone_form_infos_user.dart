@@ -9,47 +9,141 @@ class FirestPhoneFormInfosUser extends StatefulWidget {
   const FirestPhoneFormInfosUser({super.key});
 
   @override
-  State<FirestPhoneFormInfosUser> createState() =>
-      _FirestPhoneFormInfosUserState();
+  State<FirestPhoneFormInfosUser> createState() => _FirestPhoneFormInfosUserState();
 }
 
 class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
-  // ignore: unused_field
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nomUser = TextEditingController();
   final TextEditingController prenomsUser = TextEditingController();
   final TextEditingController phoneUser = TextEditingController();
   bool acceptConditions = false;
 
-  bool showPrenomField = false;
-  bool showPhoneField = false;
-  bool showSubmitButton = false;
+  bool isHomme = false;
+  bool isFemme = false;
 
-  void _navigateToNextScreen() {
-    if (nomUser.text.isNotEmpty &&
-        prenomsUser.text.isNotEmpty &&
-        phoneUser.text.isNotEmpty) {
-      // Création d'un Map pour stocker les données
+  // Variables pour stocker les messages d'erreur
+  String? nomError;
+  String? prenomError;
+  String? phoneError;
+  String? genreError;
+  String? conditionsError;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ajouter les listeners pour la validation en temps réel
+    nomUser.addListener(() {
+      if (nomError != null) {
+        setState(() {
+          nomError = validateNom(nomUser.text);
+        });
+      }
+    });
+
+    prenomsUser.addListener(() {
+      if (prenomError != null) {
+        setState(() {
+          prenomError = validatePrenom(prenomsUser.text);
+        });
+      }
+    });
+
+    phoneUser.addListener(() {
+      if (phoneError != null) {
+        setState(() {
+          phoneError = validatePhone(phoneUser.text);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    nomUser.dispose();
+    prenomsUser.dispose();
+    phoneUser.dispose();
+    super.dispose();
+  }
+
+  // Réinitialiser tous les messages d'erreur
+  void _resetErrors() {
+    setState(() {
+      nomError = null;
+      prenomError = null;
+      phoneError = null;
+      genreError = null;
+      conditionsError = null;
+    });
+  }
+
+  // Fonction de validation du nom
+  String? validateNom(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Le nom est obligatoire';
+    }
+    if (!RegExp(r'^[a-zA-ZÀ-ÿ\s-]+$').hasMatch(value)) {
+      return 'Le nom ne doit contenir que des lettres';
+    }
+    if (value.length < 2) {
+      return 'Le nom doit contenir au moins 2 caractères';
+    }
+    return null;
+  }
+
+  // Fonction de validation du prénom
+  String? validatePrenom(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Le prénom est obligatoire';
+    }
+    if (!RegExp(r'^[a-zA-ZÀ-ÿ\s-]+$').hasMatch(value)) {
+      return 'Le prénom ne doit contenir que des lettres';
+    }
+    if (value.length < 2) {
+      return 'Le prénom doit contenir au moins 2 caractères';
+    }
+    return null;
+  }
+
+  // Fonction de validation du numéro de téléphone
+  String? validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Le numéro de téléphone est obligatoire';
+    }
+    if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+      return 'Le numéro doit contenir 10 chiffres';
+    }
+    return null;
+  }
+
+  void _validateAndNavigate() {
+    // Valider tous les champs
+    setState(() {
+      nomError = validateNom(nomUser.text);
+      prenomError = validatePrenom(prenomsUser.text);
+      phoneError = validatePhone(phoneUser.text);
+      genreError = !isHomme && !isFemme ? 'Veuillez sélectionner votre genre' : null;
+      conditionsError = !acceptConditions ? 'Veuillez accepter les conditions d\'utilisation' : null;
+    });
+
+    // Vérifier s'il y a des erreurs
+    if (nomError == null && 
+        prenomError == null && 
+        phoneError == null && 
+        genreError == null && 
+        conditionsError == null) {
+      // Si pas d'erreurs, procéder à la navigation
       Map<String, String> userData = {
-        'nom': nomUser.text,
-        'prenoms': prenomsUser.text,
-        'telephone': phoneUser.text,
+        'nom': nomUser.text.trim(),
+        'prenoms': prenomsUser.text.trim(),
+        'telephone': phoneUser.text.trim(),
+        'genre': isHomme ? 'Homme' : 'Femme',
       };
-
-      // Navigation vers le deuxième écran avec les données
 
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => SecondPhoneFormInfosUser(userData: userData),
-        ),
-      );
-    } else {
-      // Afficher un message d'erreur si tous les champs ne sont pas remplis
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Center(child: Text('Veuillez remplir tous les champs')),
-          backgroundColor: Colors.red,
         ),
       );
     }
@@ -58,157 +152,265 @@ class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    // ignore: unused_local_variable
-    final isSmallScreen = size.width < 768;
+    final isSmallScreen = size.width < 500;
 
     return Scaffold(
+      backgroundColor: AppColors.blanc,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.only(left: 5, right: 5, top: 30),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 50,
-                ),
-                CustomAnimations.animateListTile(
-                  // Ventou Logo
-                  Image.asset(
-                    'images/logo.png',
-                    height: size.height * 0.08,
-                    fit: BoxFit.contain,
-                  ),
-                  0,
-                ),
-                SizedBox(
-                  height: 70,
-                ),
-                Padding(
-                  padding: EdgeInsets.all(0),
-                  child: Text(
-                    "Renseignez vos informations",
-                    style: TextStyle(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 3, right: 3, top: 30),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    CustomAnimations.animateListTile(
+                      Image.asset(
+                        'images/logo.png',
+                        height: size.height * 0.08,
+                        fit: BoxFit.contain,
+                      ),
+                      0,
+                    ),
+                    const SizedBox(height: 70),
+                    Text(
+                      "Renseignez vos informations",
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: isSmallScreen ? 26 : 34,
                         color: AppColors.blue,
-                        fontFamily: AppsFont.font3),
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  padding:
-                      EdgeInsets.only(top: 5, bottom: 5, right: 1, left: 1),
-                  width: isSmallScreen ? size.width * 0.9 : size.width * 1,
-                  height: isSmallScreen ? size.height * 0.5 : size.height * 0.8,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
+                        fontFamily: AppsFont.font3,
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Dans la partie children du Column central, ajoute ceci :
-
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(3),
+                      width: isSmallScreen ? size.width * 0.9 : size.width * 1,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 20),
                             SizedBox(
                               height: 55,
                               child: CupertinoTextField(
                                 controller: nomUser,
+                                onChanged: (value) {
+                                  if (nomError != null) {
+                                    setState(() {
+                                      nomError = validateNom(value);
+                                    });
+                                  }
+                                },
                                 prefix: const Row(
                                   children: [
                                     SizedBox(width: 10),
-                                    Icon(
-                                      Icons.person_outline,
-                                      color: AppColors.orange,
-                                    ),
+                                    Icon(Icons.person_outline, color: AppColors.orange),
                                     SizedBox(width: 10),
                                   ],
                                 ),
                                 placeholder: "Votre nom",
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[200],
+                                  color: AppColors.blanc.withOpacity(0.3),
                                   borderRadius: BorderRadius.circular(15),
+                                  border: nomError != null ? Border.all(color: Colors.red) : null,
                                 ),
                               ),
                             ),
+                            if (nomError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 5, left: 10),
+                                child: Text(
+                                  nomError!,
+                                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                                ),
+                              ),
                             const SizedBox(height: 20),
                             SizedBox(
                               height: 55,
                               child: CupertinoTextField(
                                 controller: prenomsUser,
+                                onChanged: (value) {
+                                  if (prenomError != null) {
+                                    setState(() {
+                                      prenomError = validatePrenom(value);
+                                    });
+                                  }
+                                },
                                 prefix: const Row(
                                   children: [
                                     SizedBox(width: 10),
-                                    Icon(
-                                      Icons.person_outlined,
-                                      color: AppColors.orange,
-                                    ),
+                                    Icon(Icons.person_outlined, color: AppColors.orange),
                                     SizedBox(width: 10),
                                   ],
                                 ),
                                 placeholder: "Votre prénom",
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[200],
+                                  color: AppColors.blanc.withOpacity(0.3),
                                   borderRadius: BorderRadius.circular(15),
+                                  border: prenomError != null ? Border.all(color: Colors.red) : null,
                                 ),
                               ),
+                            ),
+                            if (prenomError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 5, left: 10),
+                                child: Text(
+                                  prenomError!,
+                                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                                ),
+                              ),
+                            const SizedBox(height: 20),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Checkbox(
+                                          value: isHomme,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              isHomme = value!;
+                                              if (value) isFemme = false;
+                                              genreError = null;
+                                            });
+                                          },
+                                          activeColor: AppColors.orange,
+                                        ),
+                                        const Text(
+                                          "Homme",
+                                          style: TextStyle(
+                                            color: AppColors.blue,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(width: 50),
+                                    Row(
+                                      children: [
+                                        Checkbox(
+                                          value: isFemme,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              isFemme = value!;
+                                              if (value) isHomme = false;
+                                              genreError = null;
+                                            });
+                                          },
+                                          activeColor: AppColors.orange,
+                                        ),
+                                        const Text(
+                                          "Femme",
+                                          style: TextStyle(
+                                            color: AppColors.blue,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                if (genreError != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5, left: 10),
+                                    child: Text(
+                                      genreError!,
+                                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                                    ),
+                                  ),
+                              ],
                             ),
                             const SizedBox(height: 20),
                             SizedBox(
                               height: 55,
                               child: CupertinoTextField(
                                 controller: phoneUser,
+                                onChanged: (value) {
+                                  if (phoneError != null) {
+                                    setState(() {
+                                      phoneError = validatePhone(value);
+                                    });
+                                  }
+                                },
                                 prefix: const Row(
                                   children: [
                                     SizedBox(width: 10),
-                                    Icon(
-                                      Icons.phone_outlined,
-                                      color: AppColors.orange,
-                                    ),
+                                    Icon(Icons.phone_outlined, color: AppColors.orange),
                                     SizedBox(width: 10),
                                   ],
                                 ),
                                 placeholder: "Votre numéro de téléphone",
                                 keyboardType: TextInputType.phone,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[200],
+                                  color: AppColors.blanc.withOpacity(0.3),
                                   borderRadius: BorderRadius.circular(15),
+                                  border: phoneError != null ? Border.all(color: Colors.red) : null,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 30),
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: acceptConditions,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      acceptConditions = value!;
-                                    });
-                                  },
-                                  activeColor: AppColors.orange,
+                            if (phoneError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 5, left: 10),
+                                child: Text(
+                                  phoneError!,
+                                  style: const TextStyle(color: Colors.red, fontSize: 12),
                                 ),
-                                const Expanded(
-                                  child: Text(
-                                    "J'accepte les conditions d'utilisation",
-                                    style: TextStyle(
-                                      color: AppColors.blue,
-                                      fontSize: 14,
+                              ),
+                            const SizedBox(height: 30),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: acceptConditions,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          acceptConditions = value!;
+                                          conditionsError = null;
+                                        });
+                                      },
+                                      activeColor: AppColors.orange,
+                                    ),
+                                    const Expanded(
+                                      child: Text(
+                                        "J'accepte les conditions d'utilisation",
+                                        style: TextStyle(
+                                          color: AppColors.orange,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (conditionsError != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5, left: 10),
+                                    child: Text(
+                                      conditionsError!,
+                                      style: const TextStyle(color: Colors.red, fontSize: 12),
                                     ),
                                   ),
-                                ),
                               ],
                             ),
                             const SizedBox(height: 30),
@@ -220,7 +422,7 @@ class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: TextButton(
-                                onPressed: _navigateToNextScreen,
+                                onPressed: _validateAndNavigate,
                                 child: const Text(
                                   'CONTINUER',
                                   style: TextStyle(
@@ -231,13 +433,14 @@ class _FirestPhoneFormInfosUserState extends State<FirestPhoneFormInfosUser> {
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 20),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
