@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "848704699189-g2jf444b62djm5418jvskk2atsldnn91.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ventou.leventou",
+            "certificate_hash": "2a2efb5607f16e57490ead4a2294f5df7d019bc6"
+          }
+        },
+        {
           "client_id": "848704699189-811mt1fjnol0q6embd1br4ba9puac9rv.apps.googleusercontent.com",
           "client_type": 3
         }
