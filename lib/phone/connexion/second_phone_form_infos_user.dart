@@ -275,7 +275,7 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: AppColors.orange,
               onPrimary: Colors.white,
               onSurface: AppColors.blue,
@@ -329,6 +329,7 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
+                            // ignore: deprecated_member_use
                             color: Colors.grey.withOpacity(0.2),
                             blurRadius: 10,
                             offset: const Offset(0, 5),

@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ventou/authentification/google_auth.dart';
 import 'package:ventou/phone/connexion/firest_phone_form_infos_user.dart';
-import 'package:ventou/phone/phone_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
-class PhoneLoginScreen extends StatelessWidget {
+class PhoneLoginScreen extends StatefulWidget {
   const PhoneLoginScreen({super.key});
 
-  // ignore: unused_element
+  @override
+  State<PhoneLoginScreen> createState() => _PhoneLoginScreenState();
+}
+
+class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
+  bool _isSigningIn = false;
+
   Future<void> _handleGoogleSignIn(BuildContext context) async {
+    if (_isSigningIn) return;
+
+    setState(() {
+      _isSigningIn = true;
+    });
+
     final authService = AuthService();
 
     try {
@@ -20,7 +30,7 @@ class PhoneLoginScreen extends StatelessWidget {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const PhoneFirstScreen(),
+            builder: (context) => const FirestPhoneFormInfosUser(),
           ),
         );
       }
@@ -36,6 +46,12 @@ class PhoneLoginScreen extends StatelessWidget {
             backgroundColor: AppColors.red,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningIn = false;
+        });
       }
     }
   }
@@ -56,18 +72,13 @@ class PhoneLoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: size.height * 0.02),
-
-                  // Ventou Logo
                   Image.asset(
                     'images/logo.png',
                     height: size.height * 0.08,
                     fit: BoxFit.contain,
                   ),
-
                   SizedBox(height: size.height * 0.03),
-
                   CustomAnimations.animateListTile(
-                    // Garage Sale Illustration
                     Container(
                       height:
                           isSmallScreen ? size.height * 0.4 : size.height * 0.5,
@@ -76,6 +87,7 @@ class PhoneLoginScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
+                            // ignore: deprecated_member_use
                             color: Colors.grey.withOpacity(0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
@@ -92,10 +104,7 @@ class PhoneLoginScreen extends StatelessWidget {
                     ),
                     0,
                   ),
-
                   SizedBox(height: size.height * 0.03),
-
-                  // Welcome Text
                   CustomAnimations.animateListTile(
                     Text(
                       'Bienvenue',
@@ -107,10 +116,7 @@ class PhoneLoginScreen extends StatelessWidget {
                     ),
                     1,
                   ),
-
                   SizedBox(height: size.height * 0.02),
-
-                  // Subtitle Text
                   CustomAnimations.animateListTile(
                     Text(
                       'Vivez une expérience de vente en ligne hors du commun.',
@@ -122,46 +128,51 @@ class PhoneLoginScreen extends StatelessWidget {
                     ),
                     2,
                   ),
-
                   SizedBox(height: size.height * 0.06),
-
-                  // Subtitle Text
                   CustomAnimations.animateListTile(
-                    // Google Sign-In Button
                     SizedBox(
                       width: 300,
                       child: ElevatedButton(
-                        // onPressed: () => _handleGoogleSignIn(context),
+                        onPressed: _isSigningIn
+                            ? null
+                            : () => _handleGoogleSignIn(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.blanc,
-
-                          // padding: EdgeInsets.symmetric( vertical: size.height * 0.03, horizontal: 20),
                           minimumSize: Size(10, size.height * 0.08),
+                          foregroundColor: AppColors.orange,
+                          surfaceTintColor: AppColors.orange,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                             side: const BorderSide(
                                 color: AppColors.orange, width: 2),
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            FadePageRoute(
-                              page: const FirestPhoneFormInfosUser(),
-                            ),
-                          );
-                        },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              'images/google.png',
-                              height: size.height * 0.03,
-                              width: size.height * 0.03,
-                            ),
+                            if (_isSigningIn)
+                              const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  backgroundColor: AppColors.blanc,
+                                  color: AppColors.orange,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.orange),
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            else
+                              Image.asset(
+                                'images/google.png',
+                                height: size.height * 0.03,
+                                width: size.height * 0.03,
+                              ),
                             const SizedBox(width: 10),
                             Text(
-                              'Continuer avec Google',
+                              _isSigningIn
+                                  ? 'Connexion.....'
+                                  : 'Continuer avec Google',
                               style: TextStyle(
                                 color: AppColors.orange,
                                 fontSize: isSmallScreen ? 14 : 16,
@@ -173,24 +184,8 @@ class PhoneLoginScreen extends StatelessWidget {
                     ),
                     3,
                   ),
-
                   SizedBox(height: size.height * 0.03),
-                  TextButton(
-                      onPressed: () {
-                        // Navigator.pushReplacement(
-                        //   context,
-                        //   FadePageRoute(
-                        //     page: PhoneDefinirPin(
-                        //       onPinConfirmed: (pin) {
-                        //         print('PIN configuré: $pin');
-                        //       },
-                        //     ),
-                        //   ),
-                        // );
-                        final navigator = GoRouter.of(context);
-                        navigator.push('/entree-pin');
-                      },
-                      child: Text("OPT SCREEN VIEW"))
+               
                 ],
               ),
             ),

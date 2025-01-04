@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ventou/authentification/google_auth.dart';
 import 'package:ventou/tablet/connexion/firest_tablet_form_infos_user.dart';
 import 'package:ventou/tablet/tablet_first_screen.dart';
@@ -130,6 +129,8 @@ class TabletLoginScreen extends StatelessWidget {
                                 // onPressed: () => _handleGoogleSignIn(context),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.blanc,
+                                  foregroundColor: AppColors.orange,
+                                  surfaceTintColor: AppColors.orange,
                                   minimumSize: Size(5, size.height * 0.08),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
@@ -161,14 +162,6 @@ class TabletLoginScreen extends StatelessWidget {
                           3,
                         ),
                         SizedBox(height: size.height * 0.08),
-
-                        SizedBox(height: size.height * 0.03),
-                        TextButton(
-                            onPressed: () {
-                              final navigator = GoRouter.of(context);
-                              navigator.push('/tablet-entree-pin');
-                            },
-                            child: Text("OPT SCREEN VIEW"))
                       ],
                     ),
                   ),

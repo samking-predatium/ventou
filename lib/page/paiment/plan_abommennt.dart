@@ -69,6 +69,7 @@ class SubscriptionOption extends StatelessWidget {
   final List<String> features;
 
   const SubscriptionOption({
+    super.key,
     required this.duration,
     required this.price,
     required this.features,

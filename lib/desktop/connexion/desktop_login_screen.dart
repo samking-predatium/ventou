@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ventou/authentification/google_auth.dart';
-import 'package:ventou/desktop/connexion/firest_desktop_form_infos_user.dart';
 import 'package:ventou/desktop/desktop_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
@@ -119,17 +117,11 @@ class DesktopLoginScreen extends StatelessWidget {
                             child: SizedBox(
                               width: 400,
                               child: ElevatedButton(
-                                // onPressed: () => _handleGoogleSignIn(context),
-                                onPressed: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    FadePageRoute(
-                                      page: const FirestDesktopFormInfosUser(),
-                                    ),
-                                  );
-                                },
+                                onPressed: () => _handleGoogleSignIn(context),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.blanc,
+                                  foregroundColor: AppColors.orange,
+                                  surfaceTintColor: AppColors.orange,
                                   minimumSize: Size(5, size.height * 0.08),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(25),
@@ -161,14 +153,6 @@ class DesktopLoginScreen extends StatelessWidget {
                           3,
                         ),
                         SizedBox(height: size.height * 0.08),
-                        
-                        SizedBox(height: size.height * 0.03),
-                        TextButton(
-                            onPressed: () {
-                              final navigator = GoRouter.of(context);
-                              navigator.push('/desktop-entree-pin');
-                            },
-                            child: Text("OPT SCREEN VIEW"))
                       ],
                     ),
                   ),
