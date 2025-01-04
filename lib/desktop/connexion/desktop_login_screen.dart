@@ -4,10 +4,23 @@ import 'package:ventou/desktop/desktop_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
-class DesktopLoginScreen extends StatelessWidget {
+class DesktopLoginScreen extends StatefulWidget {
   const DesktopLoginScreen({super.key});
 
+  @override
+  State<DesktopLoginScreen> createState() => _DesktopLoginScreenState();
+}
+
+class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
+  bool _isSigningIn = false;
+
   Future<void> _handleGoogleSignIn(BuildContext context) async {
+    if (_isSigningIn) return;
+
+    setState(() {
+      _isSigningIn = true;
+    });
+
     final authService = AuthService();
 
     try {
@@ -34,6 +47,12 @@ class DesktopLoginScreen extends StatelessWidget {
           ),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningIn = false;
+        });
+      }
     }
   }
 
@@ -54,7 +73,6 @@ class DesktopLoginScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomAnimations.animateListTile(
-                      // Garage Sale Illustration
                       Container(
                         height: isSmallScreen
                             ? size.height * 0.6
@@ -64,7 +82,6 @@ class DesktopLoginScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              // ignore: deprecated_member_use
                               color: Colors.grey.withOpacity(0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
@@ -109,15 +126,15 @@ class DesktopLoginScreen extends StatelessWidget {
                         2,
                       ),
                       SizedBox(height: size.height * 0.08),
-                      // Subtitle Text
                       CustomAnimations.animateListTile(
-                        // Google Sign-In Button
                         Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: SizedBox(
                             width: 400,
                             child: ElevatedButton(
-                              onPressed: () => _handleGoogleSignIn(context),
+                              onPressed: _isSigningIn
+                                  ? null
+                                  : () => _handleGoogleSignIn(context),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.blanc,
                                 minimumSize: Size(5, size.height * 0.08),
@@ -130,14 +147,28 @@ class DesktopLoginScreen extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                    'images/google.png',
-                                    height: size.height * 0.03,
-                                    width: size.height * 0.03,
-                                  ),
+                                  if (_isSigningIn)
+                                    const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                AppColors.orange),
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  else
+                                    Image.asset(
+                                      'images/google.png',
+                                      height: size.height * 0.03,
+                                      width: size.height * 0.03,
+                                    ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    'Continuer avec Google',
+                                    _isSigningIn
+                                        ? 'Connexion...'
+                                        : 'Continuer avec Google',
                                     style: TextStyle(
                                       color: AppColors.orange,
                                       fontSize: isSmallScreen ? 24 : 30,
