@@ -1,39 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:ventou/authentification/google_auth.dart';
+import 'package:ventou/tablet/connexion/firest_tablet_form_infos_user.dart';
 import 'package:ventou/tablet/tablet_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
-class TabletLoginScreen extends StatelessWidget {
+class TabletLoginScreen extends StatefulWidget {
   const TabletLoginScreen({super.key});
 
+  @override
+  State<TabletLoginScreen> createState() => _TabletLoginScreenState();
+}
+
+class _TabletLoginScreenState extends State<TabletLoginScreen> {
+  bool _isSigningIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  // tablet_login_screen.dart (modification de la méthode _handleGoogleSignIn)
   Future<void> _handleGoogleSignIn(BuildContext context) async {
+    setState(() {
+      _isSigningIn = true;
+    });
+
     final authService = AuthService();
 
     try {
-      final userCredential = await authService.signInWithGoogle();
+      final result = await authService.signInWithGoogle();
 
-      if (userCredential != null && context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const TabletFirstScreen(),
-          ),
-        );
+      if (result['user'] != null && context.mounted) {
+        if (!result['isProfileComplete']) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const FirestTabletFormInfosUser(),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const TabletFirstScreen(),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Center(
-                child: Text(
-              'Erreur lors de la connexion',
-              style: TextStyle(color: AppColors.blanc, fontSize: 18),
-            )),
+              child: Text(
+                'Erreur lors de la connexion',
+                style: TextStyle(color: AppColors.blanc, fontSize: 18),
+              ),
+            ),
             backgroundColor: AppColors.red,
           ),
         );
       }
+    } finally {
+      setState(() {
+        _isSigningIn = false;
+      });
     }
   }
 
@@ -41,20 +73,20 @@ class TabletLoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isSmallScreen = size.width < 1024;
+
     return Scaffold(
       backgroundColor: AppColors.blanc,
       body: SafeArea(
-          child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            Expanded(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Expanded(
                 flex: 1,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomAnimations.animateListTile(
-                      // Garage Sale Illustration
                       Container(
                         height: isSmallScreen
                             ? size.height * 0.6
@@ -81,47 +113,48 @@ class TabletLoginScreen extends StatelessWidget {
                       0,
                     ),
                   ],
-                )),
-            Expanded(
-              flex: 1,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'images/logo.png',
-                        height: size.height * 0.1,
-                        fit: BoxFit.contain,
-                      ),
-                      SizedBox(height: size.height * 0.06),
-                      CustomAnimations.animateListTile(
-                        Text(
-                          'Vivez une expérience de vente en ligne hors du commun.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: AppColors.blue,
-                            fontSize: isSmallScreen ? 24 : 30,
-                          ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'images/logo.png',
+                          height: size.height * 0.1,
+                          fit: BoxFit.contain,
                         ),
-                        2,
-                      ),
-                      SizedBox(height: size.height * 0.08),
-                      // Subtitle Text
-                      CustomAnimations.animateListTile(
-                        // Google Sign-In Button
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: SizedBox(
-                            width: 400,
+                        SizedBox(height: size.height * 0.06),
+                        CustomAnimations.animateListTile(
+                          Text(
+                            'Vivez une expérience de vente en ligne hors du commun.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.blue,
+                              fontSize: isSmallScreen ? 24 : 30,
+                            ),
+                          ),
+                          2,
+                        ),
+                        SizedBox(height: size.height * 0.08),
+                        CustomAnimations.animateListTile(
+                          SizedBox(
+                            width: 300,
                             child: ElevatedButton(
-                              onPressed: () => _handleGoogleSignIn(context),
+                              onPressed: _isSigningIn
+                                  ? null
+                                  : () => _handleGoogleSignIn(context),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.blanc,
-                                minimumSize: Size(5, size.height * 0.08),
+                                minimumSize: Size(10, size.height * 0.08),
+                                foregroundColor: AppColors.orange,
+                                surfaceTintColor: AppColors.orange,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25),
+                                  borderRadius: BorderRadius.circular(30),
                                   side: const BorderSide(
                                       color: AppColors.orange, width: 2),
                                 ),
@@ -129,35 +162,52 @@ class TabletLoginScreen extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                    'images/google.png',
-                                    height: size.height * 0.03,
-                                    width: size.height * 0.03,
-                                  ),
+                                  if (_isSigningIn)
+                                    const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        backgroundColor: AppColors.blanc,
+                                        color: AppColors.orange,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                AppColors.orange),
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  else
+                                    Image.asset(
+                                      'images/google.png',
+                                      height: size.height * 0.04,
+                                      width: size.height * 0.04,
+                                    ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    'Continuer avec Google',
+                                    _isSigningIn
+                                        ? 'Connexion.....'
+                                        : 'Continuer avec Google',
                                     style: TextStyle(
                                       color: AppColors.orange,
-                                      fontSize: isSmallScreen ? 24 : 30,
+                                      fontSize: isSmallScreen ? 18 : 20,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ),
+                          3,
                         ),
-                        3,
-                      ),
-                      SizedBox(height: size.height * 0.08),
-                    ],
+                      
+                        SizedBox(height: size.height * 0.08),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }

@@ -14,48 +14,63 @@ class PhoneLoginScreen extends StatefulWidget {
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   bool _isSigningIn = false;
+ 
 
-  Future<void> _handleGoogleSignIn(BuildContext context) async {
-    if (_isSigningIn) return;
+  @override
+  void initState() {
+    super.initState();
+  
+  }
 
-    setState(() {
-      _isSigningIn = true;
-    });
+  
+  // tablet_login_screen.dart (modification de la méthode _handleGoogleSignIn)
+Future<void> _handleGoogleSignIn(BuildContext context) async {
+  setState(() {
+    _isSigningIn = true;
+  });
 
-    final authService = AuthService();
+  final authService = AuthService();
 
-    try {
-      final userCredential = await authService.signInWithGoogle();
+  try {
+    final result = await authService.signInWithGoogle();
 
-      if (userCredential != null && context.mounted) {
+    if (result['user'] != null && context.mounted) {
+      if (!result['isProfileComplete']) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => const FirestPhoneFormInfosUser(),
           ),
         );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Center(
-                child: Text(
-              'Erreur lors de la connexion',
-              style: TextStyle(color: AppColors.blanc, fontSize: 14),
-            )),
-            backgroundColor: AppColors.red,
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PhoneFirstScreen(),
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSigningIn = false;
-        });
-      }
     }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(
+            child: Text(
+              'Erreur lors de la connexion',
+              style: TextStyle(color: AppColors.blanc, fontSize: 18),
+            ),
+          ),
+          backgroundColor: AppColors.red,
+        ),
+      );
+    }
+  } finally {
+    setState(() {
+      _isSigningIn = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +103,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            // ignore: deprecated_member_use
                             color: Colors.grey.withOpacity(0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
@@ -140,6 +154,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.blanc,
                           minimumSize: Size(10, size.height * 0.08),
+                          foregroundColor: AppColors.orange,
+                          surfaceTintColor: AppColors.orange,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                             side: const BorderSide(
@@ -154,6 +170,8 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                                 width: 24,
                                 height: 24,
                                 child: CircularProgressIndicator(
+                                  backgroundColor: AppColors.blanc,
+                                  color: AppColors.orange,
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                       AppColors.orange),
                                   strokeWidth: 2,
@@ -168,7 +186,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                             const SizedBox(width: 10),
                             Text(
                               _isSigningIn
-                                  ? 'Connexion...'
+                                  ? 'Connexion.....'
                                   : 'Continuer avec Google',
                               style: TextStyle(
                                 color: AppColors.orange,
@@ -182,6 +200,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                     3,
                   ),
                   SizedBox(height: size.height * 0.03),
+               
                 ],
               ),
             ),
