@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.ventou.leventou"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ventou/functions/crypt.dart';
 import 'package:ventou/models/model_champs_otp.dart';
+import 'package:ventou/phone/phone_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
@@ -17,6 +21,7 @@ class _PhoneEntrerPinState extends State<PhoneEntrerPin> {
   String _errorMessage = '';
   int _pinAttempts = 0;
   bool _isProcessing = false;
+  final _encryptionService = EncryptionService();
 
   Future<void> _handlePinCompleted(String pin) async {
     if (!mounted) return;
@@ -27,13 +32,24 @@ class _PhoneEntrerPinState extends State<PhoneEntrerPin> {
     });
 
     try {
-      // TODO: Ajouter la vérification du PIN avec votre backend
+      debugPrint('Tentative de vérification du PIN: ${pin.length} chiffres');
       bool isPinValid = await _verifyPin(pin);
+      debugPrint('Résultat de la vérification: $isPinValid');
 
       if (isPinValid) {
         if (mounted) {
-          final navigator = GoRouter.of(context);
-          navigator.push('/first-screen');
+          setState(() {
+            _isProcessing = false;
+          });
+
+          // Correction de la navigation
+          if (context.mounted) {
+            // Option 1: Utiliser push au lieu de pushReplacement
+            await Navigator.push(
+              context,
+              SlidePageRoute(page: PhoneFirstScreen()),
+            );
+          }
         }
       } else {
         if (mounted) {
@@ -47,6 +63,7 @@ class _PhoneEntrerPinState extends State<PhoneEntrerPin> {
         }
       }
     } catch (e) {
+      debugPrint('Erreur dans _handlePinCompleted: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -57,11 +74,53 @@ class _PhoneEntrerPinState extends State<PhoneEntrerPin> {
     }
   }
 
-  // TODO: Implémenter la vérification réelle du PIN
   Future<bool> _verifyPin(String pin) async {
-    // Simuler une vérification du PIN
-    await Future.delayed(const Duration(seconds: 1));
-    return pin == '1234'; // À remplacer par votre logique de vérification
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        debugPrint('Erreur: Utilisateur non connecté');
+        return false;
+      }
+
+      debugPrint('Récupération du document de sécurité...');
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('parametres')
+          .doc('security')
+          .get();
+
+      final data = userDoc.data();
+      if (data == null) {
+        debugPrint('Erreur: Document de sécurité non trouvé');
+        return false;
+      }
+
+      if (!data.containsKey('pin') || data['pin'].isEmpty) {
+        debugPrint('Erreur: PIN non défini dans le document');
+        return false;
+      }
+
+      final encryptedPin = data['pin'] as String;
+      debugPrint('PIN crypté récupéré, longueur: ${encryptedPin.length}');
+
+      final decryptedPin = await _encryptionService.decrypt(encryptedPin);
+      debugPrint('PIN décrypté, longueur: ${decryptedPin.length}');
+
+      // Comparaison sécurisée avec logging
+      final isMatch = decryptedPin == pin;
+      debugPrint(
+          'Comparaison PIN: ${pin.length} chiffres vs ${decryptedPin.length} chiffres');
+      debugPrint('Résultat de la comparaison: $isMatch');
+
+      return isMatch;
+    } catch (e) {
+      debugPrint('Erreur détaillée lors de la vérification du PIN: $e');
+      if (e.toString().contains('decrypt')) {
+        debugPrint('Erreur spécifique au décryptage détectée');
+      }
+      return false;
+    }
   }
 
   void _resetPin() {
@@ -73,6 +132,32 @@ class _PhoneEntrerPinState extends State<PhoneEntrerPin> {
       _pinAttempts++;
       _isProcessing = false;
     });
+  }
+
+  // Méthode de debug pour vérifier le PIN stocké
+  Future<void> _debugStoredPin() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('parametres')
+          .doc('security')
+          .get();
+
+      final data = doc.data();
+      if (data != null) {
+        debugPrint('État du PIN: ${data['pinState']}');
+        debugPrint('PIN crypté existe: ${data.containsKey('pin')}');
+        if (data.containsKey('pin')) {
+          debugPrint('Longueur du PIN crypté: ${data['pin'].length}');
+        }
+      }
+    } catch (e) {
+      debugPrint('Erreur debug PIN: $e');
+    }
   }
 
   @override
@@ -169,7 +254,7 @@ class _PhoneEntrerPinState extends State<PhoneEntrerPin> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 100),
                   if (!_isProcessing) ...[
                     TextButton(
                       onPressed: _resetPin,

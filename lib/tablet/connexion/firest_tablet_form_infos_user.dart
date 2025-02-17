@@ -167,7 +167,7 @@ class _FirestTabletFormInfosUserState extends State<FirestTabletFormInfosUser> {
               child: Form(
                 key: _formKey,
                 child: Container(
-                  height: 730,
+                  height: 700,
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),

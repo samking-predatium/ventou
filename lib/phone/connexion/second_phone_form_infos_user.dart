@@ -1,11 +1,17 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:ventou/phone/phone_first_screen.dart';
+import 'package:ventou/functions/redimensionner_image.dart';
+import 'package:ventou/phone/connexion/phone_definir_pin.dart';
+import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 import 'package:ventou/variables/police.dart';
 
@@ -32,47 +38,6 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
   String? quartierError;
   String? dateError;
   String? imageError;
-
-  @override
-  void initState() {
-    super.initState();
-    // Ajouter les listeners pour la validation en temps réel
-     commune.addListener(() {
-    setState(() {
-      if (commune.text.isNotEmpty) {
-        communeError = null;
-      } else if (communeError != null) {
-        communeError = validateCommune(commune.text);
-      }
-    });
-  });
-
-  quartier.addListener(() {
-    setState(() {
-      if (quartier.text.isNotEmpty) {
-        quartierError = null;
-      } else if (quartierError != null) {
-        quartierError = validateQuartier(quartier.text);
-      }
-    });
-  });
-
-    dateController.addListener(() {
-      if (dateError != null) {
-        setState(() {
-          dateError = validateDate(dateController.text);
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    commune.dispose();
-    quartier.dispose();
-    dateController.dispose();
-    super.dispose();
-  }
 
   // Réinitialiser tous les messages d'erreur
   void _resetErrors() {
@@ -130,38 +95,6 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
           );
         }
       }
-    }
-  }
-
-  void _validateAndFinish() {
-    // Valider tous les champs
-    setState(() {
-      communeError = validateCommune(commune.text);
-      quartierError = validateQuartier(quartier.text);
-      dateError = validateDate(dateController.text);
-      imageError = validateImage();
-    });
-
-    // Vérifier s'il y a des erreurs
-    if (communeError == null &&
-        quartierError == null &&
-        dateError == null &&
-        imageError == null) {
-      // Si pas d'erreurs, procéder à l'enregistrement
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PhoneFirstScreen(),
-        ),
-      );
-    } else {
-      // Afficher un message d'erreur général
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez corriger les erreurs dans le formulaire'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -238,34 +171,6 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
     }
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    await _checkAndRequestPermissions();
-
-    final ImagePicker picker = ImagePicker();
-    try {
-      final XFile? pickedFile = await picker.pickImage(
-        source: source,
-        maxWidth: 1800,
-        maxHeight: 1800,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-          imageError = null; // Réinitialiser l'erreur de l'image
-        });
-      }
-    } catch (e) {
-      debugPrint('Error picking image: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Erreur lors de la sélection de l\'image: $e')),
-        );
-      }
-    }
-  }
-
   void _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -292,6 +197,193 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
         dateController.text = birthDate;
         dateError = null; // Réinitialiser l'erreur de la date
       });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    commune.addListener(() {
+      setState(() {
+        if (commune.text.isNotEmpty) {
+          communeError = null;
+        } else if (communeError != null) {
+          communeError = validateCommune(commune.text);
+        }
+      });
+    });
+
+    quartier.addListener(() {
+      setState(() {
+        if (quartier.text.isNotEmpty) {
+          quartierError = null;
+        } else if (quartierError != null) {
+          quartierError = validateQuartier(quartier.text);
+        }
+      });
+    });
+
+    dateController.addListener(() {
+      if (dateError != null) {
+        setState(() {
+          dateError = validateDate(dateController.text);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    commune.dispose();
+    quartier.dispose();
+    dateController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _clearTemporaryFiles() async {
+    final tempDir = Directory.systemTemp;
+    final files = tempDir.listSync();
+    for (var file in files) {
+      if (file is File && file.path.contains('resized_image')) {
+        try {
+          await file.delete();
+        } catch (e) {
+          debugPrint('Erreur lors de la suppression du fichier: $e');
+        }
+      }
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    await _checkAndRequestPermissions();
+
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+      );
+
+      if (pickedFile != null) {
+        // Créer un dossier permanent dans les documents de l'application
+        final appDir =
+            await getApplicationDocumentsDirectory(); // Ajoutez l'import: import 'package:path_provider/path_provider.dart';
+        final imagesDir = Directory('${appDir.path}/profile_images');
+        if (!await imagesDir.exists()) {
+          await imagesDir.create(recursive: true);
+        }
+
+        if (mounted) {
+          final result = await showDialog<File>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ImageResizer(
+                    key: UniqueKey(),
+                    imageFile: File(pickedFile.path),
+                    onImageResized: (File file) async {
+                      // Copier le fichier redimensionné dans le dossier permanent
+                      final timestamp = DateTime.now().millisecondsSinceEpoch;
+                      final newPath =
+                          '${imagesDir.path}/profile_$timestamp.jpg';
+                      final newFile = await file.copy(newPath);
+                      Navigator.of(context).pop(newFile);
+                    },
+                    defaultWidth: 200,
+                    defaultHeight: 200,
+                  ),
+                ),
+              );
+            },
+          );
+
+          if (result != null && mounted) {
+            setState(() {
+              _imageFile = result;
+              imageError = null;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Erreur lors de la sélection de l\'image : $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la sélection de l\'image : $e'),
+          ),
+        );
+      }
+    }
+  }
+  
+
+  void _validateAndFinish() async {
+    setState(() {
+      communeError = validateCommune(commune.text);
+      quartierError = validateQuartier(quartier.text);
+      dateError = validateDate(dateController.text);
+      imageError = validateImage();
+    });
+
+    if (communeError == null &&
+        quartierError == null &&
+        dateError == null &&
+        imageError == null) {
+      try {
+        // Obtenir l'utilisateur actuellement connecté
+        User? currentUser = FirebaseAuth.instance.currentUser;
+
+        if (currentUser != null) {
+          // Référence au document de l'utilisateur
+          DocumentReference userRef = FirebaseFirestore.instance
+              .collection('users')
+              .doc(currentUser.uid);
+
+          // Si vous avez une image, la télécharger d'abord
+          String? imageUrl;
+          if (_imageFile != null) {
+            final storageRef = FirebaseStorage.instance
+                .ref()
+                .child('profile_pictures/${currentUser.uid}');
+            await storageRef.putFile(_imageFile!);
+            imageUrl = await storageRef.getDownloadURL();
+          }
+
+          // Mettre à jour le document utilisateur
+          await userRef.update({
+            ...widget.userData,
+            'commune': commune.text,
+            'quartier': quartier.text,
+            'dateNaissance': birthDate,
+            if (imageUrl != null) 'photoUrl': imageUrl,
+          });
+
+          if (mounted) {
+            // Redirection directe vers l'écran de définition du PIN
+            Navigator.pushReplacement(
+              context,
+              SlidePageRoute(
+                page: PhoneDefinirPin(),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors de la mise à jour : $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -347,20 +439,23 @@ class _SecondPhoneFormInfosUserState extends State<SecondPhoneFormInfosUser> {
                               decoration: BoxDecoration(
                                 color: AppColors.blanc.withOpacity(0.3),
                                 shape: BoxShape.circle,
-                                image: _imageFile != null
-                                    ? DecorationImage(
-                                        image: FileImage(_imageFile!),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
                               ),
-                              child: _imageFile == null
-                                  ? const Icon(
-                                      Icons.camera_alt,
-                                      size: 40,
-                                      color: AppColors.orange,
-                                    )
-                                  : null,
+                              child: ClipOval(
+                                child: _imageFile != null
+                                    ? Image.file(
+                                        _imageFile!,
+                                        key: ValueKey(_imageFile!.path +
+                                            DateTime.now().toString()),
+                                        fit: BoxFit.cover,
+                                        width: 120,
+                                        height: 120,
+                                      )
+                                    : const Icon(
+                                        Icons.camera_alt,
+                                        size: 40,
+                                        color: AppColors.orange,
+                                      ),
+                              ),
                             ),
                           ),
                           if (imageError != null)

@@ -1,19 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:ventou/authentification/google_auth.dart';
+import 'package:ventou/desktop/connexion/firest_desktop_form_infos_user.dart';
 import 'package:ventou/desktop/desktop_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
-class DesktopLoginScreen extends StatelessWidget {
+class DesktopLoginScreen extends StatefulWidget {
   const DesktopLoginScreen({super.key});
 
-  Future<void> _handleGoogleSignIn(BuildContext context) async {
-    final authService = AuthService();
+  @override
+  State<DesktopLoginScreen> createState() => _DesktopLoginScreenState();
+}
 
-    try {
-      final userCredential = await authService.signInWithGoogle();
+class _DesktopLoginScreenState extends State<DesktopLoginScreen> {
+   bool _isSigningIn = false;
+ 
 
-      if (userCredential != null && context.mounted) {
+  @override
+  void initState() {
+    super.initState();
+  
+  }
+
+  
+  // tablet_login_screen.dart (modification de la méthode _handleGoogleSignIn)
+Future<void> _handleGoogleSignIn(BuildContext context) async {
+  setState(() {
+    _isSigningIn = true;
+  });
+
+  final authService = AuthService();
+
+  try {
+    final result = await authService.signInWithGoogle();
+
+    if (result['user'] != null && context.mounted) {
+      if (!result['isProfileComplete']) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const FirestDesktopFormInfosUser(),
+          ),
+        );
+      } else {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -21,21 +50,27 @@ class DesktopLoginScreen extends StatelessWidget {
           ),
         );
       }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Center(
-                child: Text(
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(
+            child: Text(
               'Erreur lors de la connexion',
               style: TextStyle(color: AppColors.blanc, fontSize: 18),
-            )),
-            backgroundColor: AppColors.red,
+            ),
           ),
-        );
-      }
+          backgroundColor: AppColors.red,
+        ),
+      );
     }
+  } finally {
+    setState(() {
+      _isSigningIn = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -109,44 +144,57 @@ class DesktopLoginScreen extends StatelessWidget {
                           2,
                         ),
                         SizedBox(height: size.height * 0.08),
-                        // Subtitle Text
                         CustomAnimations.animateListTile(
-                          // Google Sign-In Button
-                          Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: SizedBox(
-                              width: 400,
-                              child: ElevatedButton(
-                                onPressed: () => _handleGoogleSignIn(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.blanc,
-                                  foregroundColor: AppColors.orange,
-                                  surfaceTintColor: AppColors.orange,
-                                  minimumSize: Size(5, size.height * 0.08),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                    side: const BorderSide(
-                                        color: AppColors.orange, width: 2),
-                                  ),
+                          SizedBox(
+                            width: 400,
+                            child: ElevatedButton(
+                              onPressed: _isSigningIn
+                                  ? null
+                                  : () => _handleGoogleSignIn(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.blanc,
+                                minimumSize: Size(10, size.height * 0.08),
+                                foregroundColor: AppColors.orange,
+                                surfaceTintColor: AppColors.orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  side: const BorderSide(
+                                      color: AppColors.orange, width: 2),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (_isSigningIn)
+                                    const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        backgroundColor: AppColors.blanc,
+                                        color: AppColors.orange,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                AppColors.orange),
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  else
                                     Image.asset(
                                       'images/google.png',
-                                      height: size.height * 0.03,
-                                      width: size.height * 0.03,
+                                      height: size.height * 0.05,
+                                      width: size.height * 0.05,
                                     ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      'Continuer avec Google',
-                                      style: TextStyle(
-                                        color: AppColors.orange,
-                                        fontSize: isSmallScreen ? 24 : 30,
-                                      ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    _isSigningIn
+                                        ? 'Connexion.....'
+                                        : 'Continuer avec Google',
+                                    style: TextStyle(
+                                      color: AppColors.orange,
+                                      fontSize: isSmallScreen ? 22 : 24,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),

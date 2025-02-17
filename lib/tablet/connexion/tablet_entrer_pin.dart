@@ -1,6 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ventou/functions/crypt.dart';
 import 'package:ventou/models/model_champs_otp.dart';
+import 'package:ventou/tablet/tablet_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
@@ -12,13 +17,13 @@ class TabletEntrerPin extends StatefulWidget {
 }
 
 class _TabletEntrerPinState extends State<TabletEntrerPin> {
-  String? _enteredPin;
+    String? _enteredPin;
   bool _hasError = false;
   String _errorMessage = '';
   int _pinAttempts = 0;
   bool _isProcessing = false;
-
-  Future<void> _handlePinCompleted(String pin) async {
+  final _encryptionService = EncryptionService(); // Initialize the encryption service
+Future<void> _handlePinCompleted(String pin) async {
     if (!mounted) return;
 
     setState(() {
@@ -27,13 +32,24 @@ class _TabletEntrerPinState extends State<TabletEntrerPin> {
     });
 
     try {
-      // TODO: Ajouter la vérification du PIN avec votre backend
+      debugPrint('Tentative de vérification du PIN: ${pin.length} chiffres');
       bool isPinValid = await _verifyPin(pin);
+      debugPrint('Résultat de la vérification: $isPinValid');
 
       if (isPinValid) {
         if (mounted) {
-          final navigator = GoRouter.of(context);
-          navigator.push('/tablet-first-screen');
+          setState(() {
+            _isProcessing = false;
+          });
+
+          // Correction de la navigation
+          if (context.mounted) {
+            // Option 1: Utiliser push au lieu de pushReplacement
+            await Navigator.push(
+              context,
+              SlidePageRoute(page: TabletFirstScreen()),
+            );
+          }
         }
       } else {
         if (mounted) {
@@ -47,6 +63,7 @@ class _TabletEntrerPinState extends State<TabletEntrerPin> {
         }
       }
     } catch (e) {
+      debugPrint('Erreur dans _handlePinCompleted: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -57,11 +74,40 @@ class _TabletEntrerPinState extends State<TabletEntrerPin> {
     }
   }
 
-  // TODO: Implémenter la vérification réelle du PIN
+
   Future<bool> _verifyPin(String pin) async {
-    // Simuler une vérification du PIN
-    await Future.delayed(const Duration(seconds: 1));
-    return pin == '1234'; // À remplacer par votre logique de vérification
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('Utilisateur non connecté');
+
+      // Récupérer le document utilisateur depuis Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('parametres')
+          .doc('security')
+          .get();
+
+      // Vérifier si le document et le PIN existent
+      final data = userDoc.data();
+      if (data == null || !data.containsKey('pin') || data['pin'].isEmpty) {
+        return false;
+      }
+
+      // Récupérer le PIN crypté
+      final encryptedPin = data['pin'] as String;
+
+      // Utiliser la nouvelle méthode de décryptage
+      final decryptedPin = await _encryptionService.decrypt(encryptedPin);
+
+      // Comparaison sécurisée du PIN
+      return decryptedPin == pin;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Erreur lors de la vérification du PIN : $e');
+      }
+      return false;
+    }
   }
 
   void _resetPin() {

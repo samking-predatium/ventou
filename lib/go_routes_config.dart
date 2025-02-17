@@ -4,7 +4,7 @@ import 'package:ventou/desktop/connexion/desktop_entrer_pin.dart';
 import 'package:ventou/desktop/connexion/desktop_verifier_code_send_by_mail.dart';
 import 'package:ventou/desktop/connexion/desktop_verifier_compte.dart';
 import 'package:ventou/desktop/desktop_first_screen.dart';
-import 'package:ventou/main_2.dart';
+import 'package:ventou/ecran_initial.dart';
 import 'package:ventou/phone/connexion/phone_definir_pin.dart';
 import 'package:ventou/phone/connexion/phone_entrer_pin.dart';
 import 'package:ventou/phone/connexion/verifier_code_send_by_mail.dart';
@@ -21,7 +21,7 @@ final GoRouter router = GoRouter(
   routes: [
     GoRoute(
       path: '/login',
-      builder: (context, state) => const Main2(),
+      builder: (context, state) => const EcranInitial(),
     ),
 
     // PHONE ROOT

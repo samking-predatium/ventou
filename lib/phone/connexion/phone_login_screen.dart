@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ventou/authentification/google_auth.dart';
 import 'package:ventou/phone/connexion/firest_phone_form_infos_user.dart';
+import 'package:ventou/phone/phone_first_screen.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
@@ -13,48 +14,63 @@ class PhoneLoginScreen extends StatefulWidget {
 
 class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
   bool _isSigningIn = false;
+ 
 
-  Future<void> _handleGoogleSignIn(BuildContext context) async {
-    if (_isSigningIn) return;
+  @override
+  void initState() {
+    super.initState();
+  
+  }
 
-    setState(() {
-      _isSigningIn = true;
-    });
+  
+  // tablet_login_screen.dart (modification de la méthode _handleGoogleSignIn)
+Future<void> _handleGoogleSignIn(BuildContext context) async {
+  setState(() {
+    _isSigningIn = true;
+  });
 
-    final authService = AuthService();
+  final authService = AuthService();
 
-    try {
-      final userCredential = await authService.signInWithGoogle();
+  try {
+    final result = await authService.signInWithGoogle();
 
-      if (userCredential != null && context.mounted) {
+    if (result['user'] != null && context.mounted) {
+      if (!result['isProfileComplete']) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => const FirestPhoneFormInfosUser(),
           ),
         );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Center(
-                child: Text(
-              'Erreur lors de la connexion',
-              style: TextStyle(color: AppColors.blanc, fontSize: 14),
-            )),
-            backgroundColor: AppColors.red,
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PhoneFirstScreen(),
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSigningIn = false;
-        });
-      }
     }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(
+            child: Text(
+              'Erreur lors de la connexion',
+              style: TextStyle(color: AppColors.blanc, fontSize: 18),
+            ),
+          ),
+          backgroundColor: AppColors.red,
+        ),
+      );
+    }
+  } finally {
+    setState(() {
+      _isSigningIn = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +103,6 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            // ignore: deprecated_member_use
                             color: Colors.grey.withOpacity(0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 5),

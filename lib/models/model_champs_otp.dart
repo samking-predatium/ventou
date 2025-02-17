@@ -88,7 +88,7 @@ class _ModelChampsOtpState extends State<ModelChampsOtp> {
   void _updatePin() {
     _pin = _controllers.map((controller) => controller.text).join();
     widget.onChanged?.call(_pin);
-    
+
     if (_pin.length == widget.length) {
       widget.onCompleted(_pin);
     }
@@ -134,49 +134,56 @@ class _ModelChampsOtpState extends State<ModelChampsOtp> {
                 child: AnimatedContainer(
                   duration: widget.animationDuration,
                   curve: widget.animationCurve,
-                  width: widget.fieldWidth,
-                  height: widget.fieldHeight,
+                  width: widget.fieldWidth! +
+                      4, // Ajoutez un padding pour la bordure
+                  height: widget.fieldHeight! + 4,
                   decoration: BoxDecoration(
-                    color: widget.fieldBackgroundColor ?? 
-                           Theme.of(context).scaffoldBackgroundColor,
-                    borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
+                    color: widget.fieldBackgroundColor ??
+                        Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius:
+                        widget.borderRadius ?? BorderRadius.circular(8),
                     border: Border.all(
                       color: _focusNodes[index].hasFocus
-                          ? widget.focusedBorderColor ?? Theme.of(context).primaryColor
+                          ? widget.focusedBorderColor ??
+                              Theme.of(context).primaryColor
                           : widget.hasError == true
                               ? widget.errorBorderColor!
                               : widget.borderColor!,
-                      width: _focusNodes[index].hasFocus ? 2 : 1,
+                      width: 2, // Fixez la largeur de bordure
                     ),
                   ),
                   child: Center(
-                    child: TextField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      textAlign: TextAlign.center,
-                      style: widget.textStyle ??
-                          TextStyle(
-                            color: widget.textColor ?? 
-                                   Theme.of(context).textTheme.bodyLarge?.color,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        LengthLimitingTextInputFormatter(2),
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      obscureText: widget.obscureText,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        counterText: "",
-                        contentPadding: EdgeInsets.zero,
+                    child: SizedBox(
+                      width: widget.fieldWidth,
+                      height: widget.fieldHeight,
+                      child: TextField(
+                        controller: _controllers[index],
+                        focusNode: _focusNodes[index],
+                        textAlign: TextAlign.center,
+                        style: widget.textStyle ??
+                            TextStyle(
+                              color: widget.textColor ??
+                                  Theme.of(context).textTheme.bodyLarge?.color,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(1),
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        obscureText: widget.obscureText,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          counterText: "",
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onChanged: (value) => _onChanged(value, index),
+                        onTap: () => _onFocus(index),
+                        showCursor: widget.showCursor,
+                        autofocus: widget.autofocus && index == 0,
+                        enabled: widget.enabled,
                       ),
-                      onChanged: (value) => _onChanged(value, index),
-                      onTap: () => _onFocus(index),
-                      showCursor: widget.showCursor,
-                      autofocus: widget.autofocus && index == 0,
-                      enabled: widget.enabled,
                     ),
                   ),
                 ),

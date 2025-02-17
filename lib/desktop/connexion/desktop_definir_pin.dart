@@ -1,11 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ventou/functions/crypt.dart';
 import 'package:ventou/models/model_champs_otp.dart';
 import 'package:ventou/variables/animations.dart';
 import 'package:ventou/variables/colors.dart';
 
 class DesktopDefinirPin extends StatefulWidget {
-    final Function(String)? onPinConfirmed;
+  final Function(String)? onPinConfirmed;
   const DesktopDefinirPin({super.key, this.onPinConfirmed});
 
   @override
@@ -13,6 +16,7 @@ class DesktopDefinirPin extends StatefulWidget {
 }
 
 class _DesktopDefinirPinState extends State<DesktopDefinirPin> {
+  final EncryptionService _encryptionService = EncryptionService();
   String? _firstPin;
   String? _confirmPin;
   bool _showConfirmation = false;
@@ -20,6 +24,41 @@ class _DesktopDefinirPinState extends State<DesktopDefinirPin> {
   String _errorMessage = '';
   int _confirmKeyCounter = 0;
   bool _isNavigating = false;
+
+  Future<void> _saveEncryptedPin(String? pin) async {
+    try {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) throw Exception('Aucun utilisateur connecté');
+
+      // Utilisation du nouveau service de cryptage
+      final String encryptedPin;
+      if (pin != null && pin.isNotEmpty) {
+        // Utilisation de la méthode encrypt du EncryptionService
+        encryptedPin = await _encryptionService.encrypt(pin);
+      } else {
+        encryptedPin = '';
+      }
+
+      // Sauvegarder dans Firestore
+      final parametresRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('parametres')
+          .doc('security');
+
+      await parametresRef.set({
+        'pinState': pin != null && pin.isNotEmpty,
+        'pin': encryptedPin,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      debugPrint(
+          'PIN ${pin != null && pin.isNotEmpty ? "enregistré" : "non défini"} avec succès.');
+    } catch (e) {
+      debugPrint('Erreur lors de la sauvegarde du PIN : $e');
+      throw Exception('Erreur lors de l\'enregistrement du PIN.');
+    }
+  }
 
   void _handleFirstPinCompleted(String pin) {
     if (!mounted) return;
@@ -61,38 +100,50 @@ class _DesktopDefinirPinState extends State<DesktopDefinirPin> {
         _isNavigating = true;
       });
 
-      // Appeler le callback avant la navigation
+      // Sauvegarde sécurisée du PIN
+      await _saveEncryptedPin(_firstPin!);
+
       widget.onPinConfirmed?.call(_firstPin!);
 
-      // Attendre un court instant pour s'assurer que le setState est terminé
       await Future.delayed(const Duration(milliseconds: 100));
 
       if (!mounted) return;
 
-      // Utiliser un BuildContext valide pour la navigation
-      final navigator = GoRouter.of(context);
-      navigator.push('/desktop-first-screen');
+      GoRouter.of(context).pushReplacement('/desktop-first-screen');
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isNavigating = false;
         _hasError = true;
-        _errorMessage = 'Erreur de navigation. Veuillez réessayer.';
+        _errorMessage =
+            'Erreur lors de la sauvegarde ou navigation. Veuillez réessayer.';
       });
     }
   }
 
-  void _resetPin() {
+  Future<void> _resetPin() async {
     if (!mounted) return;
-    setState(() {
-      _firstPin = null;
-      _confirmPin = null;
-      _showConfirmation = false;
-      _hasError = false;
-      _errorMessage = '';
-      _confirmKeyCounter++;
-      _isNavigating = false;
-    });
+
+    try {
+      setState(() {
+        _isNavigating = true;
+      });
+
+      // Sauvegarde d'un PIN vide dans Firestore
+      await _saveEncryptedPin(null);
+
+      if (!mounted) return;
+
+      // Redirection vers l'écran d'accueil
+      GoRouter.of(context).pushReplacement('/desktop-first-screen');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isNavigating = true;
+        _hasError = true;
+        _errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+      });
+    }
   }
 
   @override
@@ -114,7 +165,7 @@ class _DesktopDefinirPinState extends State<DesktopDefinirPin> {
           child: Center(
             child: Container(
               width: 400,
-              height: 600,
+              height: 650,
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
@@ -134,141 +185,100 @@ class _DesktopDefinirPinState extends State<DesktopDefinirPin> {
                       ),
                       0,
                     ),
-                    if (!_showConfirmation) ...[
-                      Column(
-                        children: [
-                          const Text(
-                            'Définissez votre code PIN',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.blue,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Choisissez un code PIN à 4 chiffres',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      ModelChampsOtp(
-                        key: ValueKey('first_pin_$_confirmKeyCounter'),
-                        length: 4,
-                        fieldWidth: 60,
-                        fieldHeight: 60,
-                        fieldBackgroundColor: Colors.grey[100],
-                        borderColor: Colors.grey[300]!,
-                        focusedBorderColor: AppColors.orange,
-                        textStyle: const TextStyle(fontSize: 24),
-                        obscureText: true,
-                        onCompleted: _handleFirstPinCompleted,
-                      ),
-                    ] else ...[
-                      Column(
-                        children: [
-                          const Text(
-                            'Confirmez votre code PIN',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.blue,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Saisissez à nouveau votre code PIN',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      ModelChampsOtp(
-                        key: ValueKey('confirm_pin_$_confirmKeyCounter'),
-                        length: 4,
-                        fieldWidth: 60,
-                        fieldHeight: 60,
-                        fieldBackgroundColor: Colors.grey[100],
-                        borderColor: Colors.grey[300]!,
-                        focusedBorderColor: AppColors.orange,
-                        textStyle: const TextStyle(fontSize: 24),
-                        obscureText: true,
-                        onCompleted: _handleConfirmPinCompleted,
-                      ),
-                    ],
-                    if (_showConfirmation &&
-                        _confirmPin != null &&
-                        !_hasError) ...[
-                      const SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed: _isNavigating ? null : _handleContinue,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.orange,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 15,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                    SizedBox(height: 100,),
+                    Column(
+                      children: [
+                        Text(
+                          _showConfirmation
+                              ? 'Confirmez votre code PIN'
+                              : 'Sécurisez votre compte',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.blue,
                           ),
                         ),
-                        child: _isNavigating
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Continuer',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          _showConfirmation
+                              ? ''
+                              : 'Définissez un code PIN à 4 chiffres\npour protéger votre compte',
+                          textAlign: TextAlign.center,
+                          style:
+                              const TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 50),
+                    ModelChampsOtp(
+                      key: ValueKey(_showConfirmation
+                          ? 'confirm_pin_$_confirmKeyCounter'
+                          : 'first_pin_$_confirmKeyCounter'),
+                      length: 4,
+                      fieldWidth: 60,
+                      fieldHeight: 60,
+                      fieldBackgroundColor: Colors.grey[100],
+                      borderColor: Colors.grey[300]!,
+                      focusedBorderColor: AppColors.orange,
+                      textStyle: const TextStyle(fontSize: 30),
+                      obscureText: true,
+                      onCompleted: _showConfirmation
+                          ? _handleConfirmPinCompleted
+                          : _handleFirstPinCompleted,
+                    ),
                     if (_hasError)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.red[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.error_outline, color: Colors.red[700]),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _errorMessage,
-                                style: TextStyle(
-                                  color: Colors.red[700],
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ],
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          _errorMessage,
+                          style:
+                              TextStyle(color: Colors.red[700], fontSize: 14),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     const SizedBox(height: 20),
-                    if (!_isNavigating)
-                      TextButton(
-                        onPressed: _resetPin,
-                        child: Text(
-                          _showConfirmation ? 'Recommencer' : 'Réinitialiser',
-                          style: const TextStyle(fontSize: 16),
+                    Column(
+                      children: [
+                        SizedBox(
+                          height: 120,
                         ),
-                      ),
+                        if (_showConfirmation &&
+                            _confirmPin != null &&
+                            !_hasError)
+                          ElevatedButton(
+                            onPressed: _isNavigating ? null : _handleContinue,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.orange,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                            child: _isNavigating
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white)
+                                : const Text('CONFIRMER',
+                                    style: TextStyle(color: Colors.white)),
+                          ),
+                        if (!_showConfirmation)
+                          TextButton(
+                            onPressed: _isNavigating ? null : _resetPin,
+                            child: _isNavigating
+                                ? const SizedBox(
+                                    width: 30,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          AppColors.orange),
+                                    ),
+                                  )
+                                : const Text('PLUS TARD',
+                                    style: TextStyle(
+                                        color: AppColors.blue, fontSize: 22)),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ),

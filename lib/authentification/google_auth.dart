@@ -4,71 +4,102 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
+  // Initialise FirebaseAuth pour gérer l'authentification des utilisateurs.
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  // Initialise Firestore pour interagir avec la base de données cloud NoSQL.
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<UserCredential?> signInWithGoogle() async {
+  // Configure Google Sign-In pour l'authentification via un compte Google.
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: kIsWeb
+        ? '848704699189-811mt1fjnol0q6embd1br4ba9puac9rv.apps.googleusercontent.com'
+        : null,
+  );
+
+  // Permet de surveiller les changements d'état d'authentification (connexion/déconnexion).
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  // Retourne l'utilisateur actuellement connecté, ou null si aucun utilisateur n'est connecté.
+  User? get currentUser => _auth.currentUser;
+
+  // Permet à un utilisateur de se connecter à l'application via Google.
+  Future<Map<String, dynamic>> signInWithGoogle() async {
     try {
-      // Déclencher le flux d'authentification Google
+      // Vérifie si un utilisateur est déjà connecté avant d'entamer une nouvelle connexion.
+      if (_auth.currentUser != null) {
+        await _updateLastLogin(_auth.currentUser!.uid);
+        final isProfileComplete =
+            await checkProfileComplete(_auth.currentUser!.uid);
+        return {
+          'user': _auth.currentUser,
+          'isNewUser': false,
+          'isProfileComplete': isProfileComplete,
+        };
+      }
+
+      // Ouvre l'interface de connexion Google pour que l'utilisateur puisse s'authentifier.
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // Si l'utilisateur annule la connexion.
+        return {'user': null, 'isNewUser': false, 'isProfileComplete': false};
+      }
 
-      if (googleUser == null) return null;
-
-      // Obtenir les détails d'authentification
-      final GoogleSignInAuthentication googleAuth = 
+      // Récupère les jetons d'authentification pour Google afin de les utiliser avec Firebase.
+      final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // Créer un nouvel identifiant
+      // Crée les informations d'identification nécessaires pour lier Google à Firebase.
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Une fois connecté, retourner l'UserCredential
+      // Connecte l'utilisateur avec les informations d'identification Google dans Firebase.
       final userCredential = await _auth.signInWithCredential(credential);
-      
-      // Vérifier et créer/mettre à jour le document utilisateur
+      final isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+
       if (userCredential.user != null) {
-        await _handleUserFirestore(userCredential.user!);
+        // Gère les informations de l'utilisateur dans Firestore.
+        await _handleUserFirestore(userCredential.user!, isNewUser);
+        final isProfileComplete =
+            await checkProfileComplete(userCredential.user!.uid);
+
+        return {
+          'user': userCredential.user,
+          'isNewUser': isNewUser,
+          'isProfileComplete': isProfileComplete,
+        };
       }
 
-      return userCredential;
+      // Retourne une réponse par défaut si aucun utilisateur n'est connecté.
+      return {'user': null, 'isNewUser': false, 'isProfileComplete': false};
     } catch (e) {
-      if (kDebugMode) {
-        print('Erreur lors de la connexion Google: $e');
-      }
-      return null;
+      // Affiche l'erreur si le mode débogage est activé.
+      if (kDebugMode) print('Erreur lors de la connexion Google: $e');
+      return {'user': null, 'isNewUser': false, 'isProfileComplete': false};
     }
   }
 
-  // Nouvelle méthode pour gérer le document utilisateur
-  Future<void> _handleUserFirestore(User user) async {
-    try {
-      final userDocRef = _firestore.collection('users').doc(user.uid);
-      final userDoc = await userDocRef.get();
+  // Ajoute ou met à jour les données utilisateur dans Firestore en fonction de leur statut (nouveau/existant).
+  Future<void> _handleUserFirestore(User user, bool isNewUser) async {
+    final userDocRef = _firestore.collection('users').doc(user.uid);
 
-      if (!userDoc.exists) {
-        // Création d'un nouveau document si l'utilisateur n'existe pas
+    try {
+      if (isNewUser) {
+        // Ajoute un nouveau document utilisateur dans la collection 'users'.
         await userDocRef.set({
           'email': user.email,
           'uid': user.uid,
           'dateInscription': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
         });
-        if (kDebugMode) {
-          print('Nouveau document utilisateur créé');
-        }
       } else {
-        // Mise à jour de la dernière connexion si l'utilisateur existe
-        await userDocRef.update({
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
-        if (kDebugMode) {
-          print('Document utilisateur mis à jour');
-        }
+        // Met à jour la date de dernière connexion pour les utilisateurs existants.
+        await _updateLastLogin(user.uid);
       }
     } catch (e) {
+      // Affiche une erreur en cas d'échec de gestion des documents.
       if (kDebugMode) {
         print('Erreur lors de la gestion du document utilisateur: $e');
       }
@@ -76,54 +107,62 @@ class AuthService {
     }
   }
 
-  // Méthode utilitaire pour vérifier si un utilisateur existe dans Firestore
-  Future<bool> checkUserExists(String uid) async {
+  // Vérifie si le profil de l'utilisateur contient les champs nécessaires et qu'ils ne sont pas vides.
+  Future<bool> checkProfileComplete(String uid) async {
     try {
       final userDoc = await _firestore.collection('users').doc(uid).get();
-      return userDoc.exists;
-    } catch (e) {
-      if (kDebugMode) {
-        print('Erreur lors de la vérification de l\'utilisateur: $e');
+      final data = userDoc.data();
+
+      if (data == null) return false;
+
+      // Liste des champs obligatoires pour considérer le profil comme complet.
+      final requiredFields = ['nom', 'prenoms', 'telephone'];
+      for (var field in requiredFields) {
+        if (data[field] == null || (data[field] as String).isEmpty) {
+          return false;
+        }
       }
+
+      return true;
+    } catch (e) {
+      // Affiche une erreur si la vérification échoue.
+      if (kDebugMode) print('Erreur lors de la vérification du profil: $e');
+      return false;
+    }
+  }
+
+  // Met à jour le champ 'lastLogin' pour indiquer la dernière connexion de l'utilisateur.
+  Future<void> _updateLastLogin(String uid) async {
+    try {
+      await _firestore.collection('users').doc(uid).update({
+        'lastLogin': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      // Affiche une erreur si la mise à jour échoue.
+      if (kDebugMode) {
+        print('Erreur lors de la mise à jour de la dernière connexion: $e');
+      }
+      throw Exception('Erreur lors de la mise à jour de la dernière connexion');
+    }
+  }
+
+  Future<bool> checkPinState(String uid) async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('parametres')
+          .doc('security')
+          .get();
+
+      final data = userDoc.data();
+      if (data == null) return false;
+
+      // Vérifie si le champ `pinState` est bien défini et retourne sa valeur
+      return data['pinState'] as bool? ?? false;
+    } catch (e) {
+      if (kDebugMode) print('Erreur lors de la vérification du PIN : $e');
       return false;
     }
   }
 }
-
-
-
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:flutter/foundation.dart';
-// import 'package:google_sign_in/google_sign_in.dart';
-
-// class AuthService {
-//   final FirebaseAuth _auth = FirebaseAuth.instance;
-//   final GoogleSignIn _googleSignIn = GoogleSignIn();
-
-//   Future<UserCredential?> signInWithGoogle() async {
-//     try {
-//       // Déclencher le flux d'authentification Google
-//       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-//       if (googleUser == null) return null;
-
-//       // Obtenir les détails d'authentification
-//       final GoogleSignInAuthentication googleAuth =
-//           await googleUser.authentication;
-
-//       // Créer un nouvel identifiant
-//       final credential = GoogleAuthProvider.credential(
-//         accessToken: googleAuth.accessToken,
-//         idToken: googleAuth.idToken,
-//       );
-
-//       // Une fois connecté, retourner l'UserCredential
-//       return await _auth.signInWithCredential(credential);
-//     } catch (e) {
-//       if (kDebugMode) {
-//         print('Erreur lors de la connexion Google: $e');
-//       }
-//       return null;
-//     }
-//   }
-// }
